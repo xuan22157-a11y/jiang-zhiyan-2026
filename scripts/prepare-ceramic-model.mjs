@@ -1,7 +1,6 @@
 import fs from "node:fs";
 
-const source = "public/assets/ceramic/models/ceramic-vase.glb";
-const destination = "public/assets/ceramic/models/ceramic-vase-runtime.glb";
+const [source = "public/assets/ceramic/models/ceramic-vase.glb", destination = "public/assets/ceramic/models/ceramic-vase-runtime.glb"] = process.argv.slice(2);
 const buffer = fs.readFileSync(source);
 const jsonLength = buffer.readUInt32LE(12);
 const json = JSON.parse(buffer.toString("utf8", 20, 20 + jsonLength));
