@@ -860,6 +860,18 @@ export default function Prototype() {
     window.setTimeout(() => { setHistory(current => current.length > 1 ? current.slice(0, -1) : current); setTransitioning(false); setFeedback(""); setWorkProgress(0); }, 300);
   }, [keyboard, playTransition]);
 
+  const returnToWorkshop = useCallback(() => {
+    keyboard.hide(); playTransition("focus", 420, -1); setTransitionKind("focus"); setTransitioning(true);
+    if (transitionTimer.current) window.clearTimeout(transitionTimer.current);
+    transitionTimer.current = window.setTimeout(() => {
+      setHistory(current => {
+        const workshopIndex = current.lastIndexOf("B-01");
+        return workshopIndex >= 0 ? current.slice(0, workshopIndex + 1) : ["HOME-01", "B-01"];
+      });
+      setTransitioning(false); setFeedback(""); setWorkProgress(0); setSelectedChoice("");
+    }, 360);
+  }, [keyboard, playTransition]);
+
   useEffect(() => { (nextAssets[screen] ?? []).forEach(id => { const image = new Image(); image.src = `${ASSET_ROOT}/${id}.png`; }); }, [screen]);
   useEffect(() => { if (screen !== "A-02") setPorcelainRailShifted(false); }, [screen]);
   useEffect(() => { if (screen !== "AUTH-04") return; const timer = window.setTimeout(() => go("HOME-01"), 1700); return () => window.clearTimeout(timer); }, [go, screen]);
@@ -1106,8 +1118,8 @@ export default function Prototype() {
         <div className="order-field-options" aria-label="Confirm order details">
           {[[132,108,320,30],[132,154,320,30],[132,200,320,30]].map((box,index) => <button key={index} className={`order-field-select${orderFields[index] ? " selected" : ""}`} style={rect(...box as [number,number,number,number])} aria-label={["Confirm delivery address","Confirm contact number","Confirm recipient name"][index]} aria-pressed={orderFields[index]} onClick={() => { setOrderFields(fields => fields.map((value,fieldIndex) => fieldIndex === index ? !value : value)); play("click"); }}><span aria-hidden="true">✓</span></button>)}
         </div>
-        <button className={`order-submit${orderFields.every(Boolean) ? " ready" : ""}`} style={rect(272,265,90,30)} disabled={!orderFields.every(Boolean)} onClick={() => { play("success"); notify("Order submitted", "success"); setOrderFields([false,false,false]); go("B-01"); }} aria-label="Submit confirmed order" />
-        <Hotspot label="Cancel order" box={[132,265,90,30]} onClick={() => { setOrderFields([false,false,false]); go("B-01"); }} />
+        <button className={`order-submit${orderFields.every(Boolean) ? " ready" : ""}`} style={rect(272,265,90,30)} disabled={!orderFields.every(Boolean)} onClick={() => { play("success"); notify("Order submitted", "success"); setOrderFields([false,false,false]); returnToWorkshop(); }} aria-label="Submit confirmed order" />
+        <Hotspot label="Cancel order" box={[132,265,90,30]} onClick={() => { setOrderFields([false,false,false]); returnToWorkshop(); }} />
       </>}
       {screen === "B-Q-01" && <><Hotspot label="Answer A" box={[462, 183, 138, 35]} onClick={() => selectAnswer(false)} /><Hotspot label="Answer B" box={[616, 183, 138, 35]} onClick={() => selectAnswer(true)} /><Hotspot label="Answer C" box={[462, 231, 138, 35]} onClick={() => selectAnswer(false)} /><Hotspot label="Answer D" box={[616, 231, 138, 35]} onClick={() => selectAnswer(false)} /><Hotspot label="Back" box={[8, 8, 52, 45]} onClick={back} /></>}
       {screen === "B-P-01" && <><PotteryPkIntro /><Hotspot label="Start pottery challenge" box={[300, 120, 210, 155]} onClick={() => { setFeedback("correct"); notify("Challenge complete · Victory", "success"); }} /><Hotspot label="Back" box={[8, 8, 52, 45]} onClick={back} /></>}
